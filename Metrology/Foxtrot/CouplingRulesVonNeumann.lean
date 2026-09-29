@@ -6,6 +6,58 @@ public import Metrology.Foxtrot.CouplingRules
 # Coupling rules of Foxtrot: the von Neumann coin lemmas
 
 Ported from clutch/theories/foxtrot/coupling_rules.v (lines 1619–2967).
+
+## Rocq → Lean map
+* `pupd_couple_von_neumann_1 l1 l2 α β ns ns' j K E` ↦ `pupd_couple_von_neumann_1` (same
+  argument order; `{N}` implicit, as in Rocq). The hypotheses are named
+  `Hl1 Hl2 Hnodup Hlen Hlen' Hpos` as in the Rocq `iIntros`.
+* `pupd_couple_von_neumann_2 l1 l2 α ns j K j' K' E ε` ↦ `pupd_couple_von_neumann_2`
+  (hypotheses `Hl1 Hl2 Hnodup Hlen Hlen' Hlen'' _Hpos`).
+* Rocq's inline constructions ↦ local helpers:
+  - the bijection `f : fin (S N) * fin (S N) → fin (S (S N * S N - 1))` obtained from
+    `finite_bijective` ↦ `vn_enc` (`vn_X N = (N + 1) * (N + 1) - 1`, `vn_X_succ`);
+  - `fragmented_f'` / `fragmented_f_alt` + `nat_to_fin` ↦ `vn_pt` (`vn_pt_val`, `vn_nat`);
+  - `fragmented_f` ↦ `vn_g` (`vn_g_inj`, `vn_g_bound`, `vn_enc_symm_g`, `vn_g_iff`);
+  - `f_decompose` (= `f_inv f_decompose'`) ↦ `vn_D` (`vn_D_one`, `vn_D_zero`, `vn_D_bij`,
+    `vn_dunifP_D`);
+  - the `elem_of_app` / `NoDup_app` reasoning ↦ `vn_mem_l1`, `vn_mem_l2`, `vn_not_mem_l1`;
+  - the LHS double state step of `von_neumann_1` ↦ `vn1_upd`, `vn1_lhs`;
+  - the RHS scheduler of `von_neumann_1` (sample a number in `[0, S N * S N)`, step `j` iff it
+    is one of the `2 * length l1` accepted values, otherwise stutter) ↦ `vn1_osch`,
+    `vn_sample_stutter_lim_exec`, `vn1_ρb`, `vn1_acc`, `vn1_rej`, `vn1_osch_lim_exec`;
+  - the RHS of `von_neumann_2` (two `rand #N` steps of `j` and `j'`, via `two_step_osch` of
+    `Foxtrot.CouplingRules`) ↦ `vn2_ρ1`, `vn2_ρ2`, `vn2_G`, `vn2_osch_lim_exec`, `vn2_G_inj`,
+    `vn2_G_lookup`;
+  - the final `ec_eq` computation of `von_neumann_2` ↦ `vn2_err_eq` (via `frag_err_eq`).
+
+## Design choices / deviations
+* `Forall (λ x, x.1 <= N /\ x.2 <= N) l` is `∀ x ∈ l, x.1 ≤ N ∧ x.2 ≤ N`; `NoDup` is
+  `List.Nodup`; `(2 * length l1 <= S N * S N)%nat` is `2 * l1.length ≤ (N + 1) * (N + 1)`.
+* `if bool_decide ((x,y) ∈ l1) then .. else ..` is the (classically decided)
+  `if (x, y) ∈ l1 then .. else ..`.
+* `rand #1` / `rand #N` is `Rand (Val (LitV (LitInt 1))) (Val (LitV LitUnit))` (resp.
+  `LitInt (N : ℤ)`); `#x` for `x : nat` is `Val (LitV (LitInt (x : ℤ)))`.
+* Errors are `ℝ≥0∞`. The amplified error
+  `((N+1)*(N+1))%nat / ((N+1)*(N+1) - 2 * length l1)%nat * ε` keeps Rocq's shape: both the
+  numerator and the denominator are natural numbers cast to `ℝ≥0∞`, and the subtraction is
+  the (truncated) `ℕ` subtraction as in Rocq. `Hlen'' : 2 * l1.length < (N + 1) * (N + 1)`
+  makes the denominator positive, so the `x / 0 = ∞` convention never applies.
+* Rocq's `nnreal_minus ε_now ε'` is the truncated `εnow - ε`, used only under
+  `ε ≤ εnow` (from `ErrorCredit.supply_bound`), and `ε_now + ε' * 2 * length l1 / (S N * S N -
+  2 * length l1)` is `εnow + δ` with
+  `δ = ε * (2 * L - 1 + 1 : ℕ) / (vn_X N - (2 * L - 1) : ℕ)` (`L = length l1`; the same value,
+  since `0 < L` and `2 * L < (N + 1) * (N + 1)`). The bound `Rmax ε_now1 ε_now2` is
+  `max (εnow - ε) (εnow + δ)`.
+* The hypothesis `(ε > 0)%R` of `pupd_couple_von_neumann_2` is kept (as `_Hpos : 0 < ε`)
+  for fidelity, although, as in Rocq, the proof does not use it.
+* The couplings are proved by rewriting both sides into `dbind` / `dmap` of uniform
+  distributions (`dunifP_decompose`, `ARcoupl_dbind'`, `ARcoupl_map`, `ARcoupl_eq`,
+  `ARcoupl_dret`), with the coupling relations stated up front, instead of Rocq's
+  `instantiate`d relations and `SeriesC` manipulations.
+* The Rocq `Local Opaque INR` / `Local Transparent INR` directives have no counterpart.
+
+## Omitted
+Nothing: lines 1619–2967 contain only these two lemmas (no commented-out lemmas).
 -/
 
 @[expose] public section

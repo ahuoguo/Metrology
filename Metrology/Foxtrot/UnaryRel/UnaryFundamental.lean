@@ -30,7 +30,8 @@ Compatibility lemmas for the semantic typing judgement `〈 Δ ; Γ 〉 ⊨ e : 
   `type.subst (type.ren (· + 1)) τ`. Expressions: `Λ: e` is `TLam e`, `unpack: x := e1 in e2` is
   `App (App (Val unpack) e1) (Lam x e2)`, `rec_unfold e` is `App (Val rec_unfold) e`,
   `ref e` is `Alloc e`, `alloc e` is `AllocTape e`.
-* The local tactics `intro_clause` (`iIntros (vs) "#Hvs /="`) and `value_case` are inlined:
+* The local tactics `intro_clause` (`iIntros (vs) "#Hvs /="`), `intro_clause'`
+  (`progress (iIntros (?) "? /=")`, used only by `value_case`) and `value_case` are inlined:
   `unfold bin_log_related; iintro .. %vs #Hvs; simp only [subst_map]` and
   `rel_pure_l; rel_values`. `rel_bind_ap` is a local macro (as in `UnaryCompatibility`).
 

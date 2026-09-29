@@ -13,7 +13,8 @@ whole port).
 
 ## Rocq → Lean map
 All Rocq names are kept (namespace `Foxtrot.BinaryRel`). The local Ltacs `intro_clause`
-(`iIntros (vs) "#Hvs /="`) and `value_case` are inlined (`unfold bin_log_related`,
+(`iIntros (vs) "#Hvs /="`), `intro_clause'` (`progress (iIntros (?) "? /=")`, used only by
+`value_case`) and `value_case` are inlined (`unfold bin_log_related`,
 `iintro %vs #Hvs`, `simp only [subst_map]`; `rel_pure_l; rel_pure_r; rel_values`); the local
 `rel_bind_ap e1 e2 IH v w Hv` is a local macro (as in `BinaryCompatibility`).
 

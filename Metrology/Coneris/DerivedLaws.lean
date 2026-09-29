@@ -22,6 +22,8 @@ lemmas) about arrays. Most of these are taken from the Clutch program logic.
   Rocq `#(l +ₗ off)` with `off : nat` is `Val (LitV (LitLoc (l +ₗ ((off : ℕ) : ℤ))))`.
 * `update_array` is stated as an entailment `l ↦∗{dq} vs ⊢ ...` (Rocq: `⊢ _ -∗ _`), and is
   proved directly by `BigSepL.bigSepL_insert_acc`.
+* Instance costs: Rocq's `array_cons_frame ... | 2` (low cost = tried early) is ported as
+  `instance (priority := high)`.
 
 ## Omitted
 * `Global Typeclasses Opaque array`: `array` is a `def`, hence already opaque to instance search.

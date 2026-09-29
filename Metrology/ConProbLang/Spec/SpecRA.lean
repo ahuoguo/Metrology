@@ -27,6 +27,12 @@ and tapes. Built on iris-lean's `Iris.Instances.Lib.GhostMap`.
 * `specΣ` / `subG_clutchGPreS`: `gFunctors` lists are subsumed by `BundledGFunctors` typeclass
   synthesis; `subG_clutchGPreS` is replaced by an instance building `specGpreS GF` from three
   `GhostMapG` instances.
+  **Omitted:** `specΣ` (Rocq `#[ghost_mapΣ loc val; ghost_mapΣ loc tape; ghost_mapΣ nat expr]`)
+  has no Lean declaration. Where Rocq writes `subG specΣ Σ` (e.g. in adequacy statements),
+  Lean callers supply the three instances `[GhostMapG GF ℕ expr tpoolF]`,
+  `[GhostMapG GF Loc val locF]`, `[GhostMapG GF Loc tape locF]` (from which
+  `subG_clutchGPreS` derives `specGpreS GF`), or directly `[specGpreS GF]`, which bundles
+  exactly these three instances.
 * `to_tpool tp := FiniteMap.map_seq (M := tpoolF) 0 tp`. Rocq's map insert `<[j:=e]> m` is `m.insert j e`
   (Std's `insert`), list insert `<[j:=e]> tp` is `tp.set j e`. iris-lean's ghost-map lemmas
   produce `Iris.Std.insert m k v` (= `m.alter k (fun _ => some v)`); the helper

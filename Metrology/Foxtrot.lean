@@ -14,6 +14,7 @@ public import Metrology.Foxtrot.CouplingRules
 public import Metrology.Foxtrot.CouplingRulesMisc
 public import Metrology.Foxtrot.CouplingRulesVonNeumann
 public import Metrology.Foxtrot.Adequacy
+public import Metrology.Foxtrot.AdequacyInstance
 public import Metrology.Foxtrot.ConerisRelate
 public import Metrology.Foxtrot.SpecProofMode
 public import Metrology.Foxtrot.UnaryRel.UnaryModel

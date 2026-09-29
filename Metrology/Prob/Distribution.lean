@@ -28,6 +28,20 @@ name-for-name; generally, any Rocq goal `0 <= _` about `ℝ≥0∞` values is cl
 
 The Rocq tactics `inv_distr`, `solve_distr`, `solve_distr_mass` and `inv_dzero` are provided
 as Lean tactics of the same names at the end of this file.
+Intentionally omitted (trivial or vacuous in the `ℝ≥0∞` setting):
+* `distr_dec`: equality of distributions is decidable classically;
+* `Proper_dbind`: rewriting under binders (`congr`, `simp_rw`) replaces setoid rewriting;
+* `Rinv_0_le`, `pmf_ex_seriesC_mult`, `pmf_ex_seriesC_mult_fn`, `distr_double_swap_ex`,
+  `distr_double_swap_lmarg_ex`, `distr_double_swap_rmarg_ex` (and other `*_ex` variants),
+  `ex_expval_*`, `ex_distr_lmarg`, `ex_distr_rmarg`, `ex_seriesC_sum_f_R0`: non-negativity and
+  summability are automatic in `ℝ≥0∞`;
+* `SeriesC_sum_f_R0`: a finite sum commutes with `∑'` via
+  `Summable.tsum_finsetSum (fun _ _ => ENNReal.summable)`.
+
+The Laplace distribution (`laplace_f_nat`, `laplace_f`, `laplace_f_nat_pos`,
+`ex_seriesC_laplace_f(_nat)`, `laplace'`, `laplace`, `laplace_mass`, `laplace_rat`,
+`laplace_rat_pos`, `laplace_rat_mass`) is not ported: it is used only by the
+differential-privacy/caliper developments, which are out of scope.
 -/
 
 @[expose] public section
@@ -1559,7 +1573,11 @@ theorem SeriesC_indicator_le (μ : Distr α) (P Q : α → Prop) [DecidablePred 
     · simp [hP]
 
 /-- Rocq: `threshold_count`:
-`threshold_count n x = #{k ∈ {0,…,n-1} | (k+1)/n ≤ x}`. -/
+`threshold_count n x = #{k ∈ {0,…,n-1} | (k+1)/n ≤ x}`.
+
+Deviation: Rocq sums with `sum_f_R0 _ (pred n)`, which has one term (`k = 0`) when `n = 0`,
+whereas `Finset.range 0` is empty. The definitions (and those of `step_approx`) therefore agree
+with Rocq exactly for `0 < n`, which is the only case any Rocq lemma uses. -/
 def threshold_count (n : ℕ) (x : ℝ≥0∞) : ℝ≥0∞ :=
   ∑ k ∈ Finset.range n, if ((k + 1 : ℕ) : ℝ≥0∞) / n ≤ x then 1 else 0
 

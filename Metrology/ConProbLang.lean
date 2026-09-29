@@ -11,6 +11,7 @@ public import Metrology.ConProbLang.Common.ConInject
 public import Metrology.ConProbLang.Tactics
 public import Metrology.ConProbLang.Metatheory
 public import Metrology.ConProbLang.ClassInstances
+public import Metrology.ConProbLang.SolveRedIris
 public import Metrology.ConProbLang.Erasure
 public import Metrology.ConProbLang.LubTermination
 public import Metrology.ConProbLang.Spec.SpecRA

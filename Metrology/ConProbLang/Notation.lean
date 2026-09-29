@@ -78,7 +78,9 @@ Differences from Rocq:
 * Rocq tuples `(e1, e2, e3)` are LEFT-nested (`Pair (Pair e1 e2) e3`); this is kept (iris-lean's
   `hl` tuples are right-nested).
 * Variables are identifiers (as in iris-lean) or string literals (as in Rocq); Lean terms must
-  be escaped with `&`.
+  be escaped with `&`. The components of a destructuring `let (x1, x2, ..)` are identifiers or
+  string literals (Rocq allows any level-1 binder, but only named ones are meaningful there, since
+  each component is also used as a variable); `_`/`<>` are not accepted.
 * Scopes (`%E`, `%V`, `%binder`) are replaced by the three embeddings.
 * Rocq printing boxes/formats are replaced by delaborators (as in iris-lean).
 * `skip` elaborates to the constructor form `v(λ _, #()) #()` of `Skip` (equal by `rfl`).
@@ -171,6 +173,9 @@ declare_syntax_cat cpl_exp
 declare_syntax_cat cpl_binder
 declare_syntax_cat cpl_match_arm
 declare_syntax_cat cpl_val
+/-- A component of a destructuring `let`: an identifier or a string literal (Rocq: a binder at
+level 1, used both as a binder and as a variable). -/
+declare_syntax_cat cpl_tvar
 
 /-- embedding `con_prob_lang` expressions into terms -/
 syntax:max "cpl(" cpl_exp ")" : term
@@ -284,8 +289,10 @@ syntax:100 cpl_exp:100 colGt ppSpace cpl_exp:101 : cpl_exp
 syntax:10 "let " cpl_binder " := " cpl_exp:10 "; " cpl_exp:1 : cpl_exp
 syntax:10 "let " cpl_binder " := " cpl_exp:10 " in " cpl_exp:1 : cpl_exp
 /-- destructuring let (Rocq: `let,`) -/
-syntax:10 "let " "(" ident ", " ident,+ ")" " := " cpl_exp:10 "; " cpl_exp:1 : cpl_exp
-syntax:10 "let " "(" ident ", " "(" ident ", " ident ")" ")" " := " cpl_exp:10 "; "
+syntax ident : cpl_tvar
+syntax str : cpl_tvar
+syntax:10 "let " "(" cpl_tvar ", " cpl_tvar,+ ")" " := " cpl_exp:10 "; " cpl_exp:1 : cpl_exp
+syntax:10 "let " "(" cpl_tvar ", " "(" cpl_tvar ", " cpl_tvar ")" ")" " := " cpl_exp:10 "; "
   cpl_exp:1 : cpl_exp
 /-- sequencing -/
 syntax:5 cpl_exp:6 "; " cpl_exp:5 : cpl_exp
@@ -426,6 +433,18 @@ def iterFst (n : Nat) (e : TSyntax `cpl_exp) : MacroM (TSyntax `cpl_exp) :=
   | 0 => pure e
   | n + 1 => do iterFst n (← `(cpl_exp| fst($e)))
 
+/-- A destructuring-`let` component as a binder. -/
+def tvarBinder : TSyntax `cpl_tvar → MacroM (TSyntax `cpl_binder)
+  | `(cpl_tvar| $i:ident) => `(cpl_binder| $i:ident)
+  | `(cpl_tvar| $s:str) => `(cpl_binder| $s:str)
+  | _ => Macro.throwUnsupported
+
+/-- A destructuring-`let` component as a variable expression. -/
+def tvarExp : TSyntax `cpl_tvar → MacroM (TSyntax `cpl_exp)
+  | `(cpl_tvar| $i:ident) => `(cpl_exp| $i:ident)
+  | `(cpl_tvar| $s:str) => `(cpl_exp| $s:str)
+  | _ => Macro.throwUnsupported
+
 /-- elaborating expressions -/
 macro_rules
   | `(cpl(($e))) => `(cpl($e))
@@ -484,25 +503,28 @@ macro_rules
   | `(cpl($e1; $e2)) => `(cpl(let _ := $e1; $e2))
   | `(cpl(let $i := $e1 in $e2)) => `(cpl(let $i := $e1; $e2))
   | `(cpl(let $i := $e1; $e2)) => `(cpl((λ $i, $e2) $e1))
-  | `(cpl(let ($x1, $x2) := $e1; $e2)) =>
-    `(cpl(let $x2:ident := $e1; let $x1:ident := fst($x2:ident); let $x2:ident := snd($x2:ident); $e2))
-  | `(cpl(let ($x1, ($x2, $x3)) := $e1; $e2)) =>
-    `(cpl(let $x1:ident := $e1; let $x2:ident := fst(snd($x1:ident)); let $x3:ident := snd(snd($x1:ident));
-          let $x1:ident := fst($x1:ident); $e2))
+  | `(cpl(let ($x1, $x2) := $e1; $e2)) => do
+    let (b1, b2, v2) := (← tvarBinder x1, ← tvarBinder x2, ← tvarExp x2)
+    `(cpl(let $b2 := $e1; let $b1 := fst($v2); let $b2 := snd($v2); $e2))
+  | `(cpl(let ($x1, ($x2, $x3)) := $e1; $e2)) => do
+    let (b1, v1, b2, b3) := (← tvarBinder x1, ← tvarExp x1, ← tvarBinder x2, ← tvarBinder x3)
+    `(cpl(let $b1 := $e1; let $b2 := fst(snd($v1)); let $b3 := snd(snd($v1));
+          let $b1 := fst($v1); $e2))
   | `(cpl(let ($x1, $xs,*) := $e1; $e2)) => do
     -- `(x1, .., xn)` is left-nested: `xi` (i ≥ 2) is `snd (fst^(n-i) x1)`, `x1` is
     -- `fst^(n-1) x1`.
     let xs := xs.getElems
     let n := xs.size + 1
-    let x1e ← `(cpl_exp| $x1:ident)
-    let mut body ← `(cpl_exp| let $x1:ident := $(← iterFst (n - 1) x1e); $e2)
+    let b1 ← tvarBinder x1
+    let x1e ← tvarExp x1
+    let mut body ← `(cpl_exp| let $b1 := $(← iterFst (n - 1) x1e); $e2)
     for i in [0:xs.size] do
       let j := xs.size - 1 - i
-      let xj := xs[j]!
+      let bj ← tvarBinder xs[j]!
       -- `xj` is component `j + 2`
       let proj ← iterFst (n - (j + 2)) x1e
-      body ← `(cpl_exp| let $xj:ident := snd($proj); $body)
-    `(cpl(let $x1:ident := $e1; $body))
+      body ← `(cpl_exp| let $bj := snd($proj); $body)
+    `(cpl(let $b1 := $e1; $body))
   | `(cpl(($e1, $e2))) => `(ConProbLang.con_prob_lang.expr.Pair cpl($e1) cpl($e2))
   | `(cpl(($e1, $e2, $es,*))) => do
     let mut acc ← `(cpl_exp|($e1, $e2))

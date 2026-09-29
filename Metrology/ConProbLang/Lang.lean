@@ -77,7 +77,8 @@ the language is an instance of `conEctxiLanguage` (`con_prob_ectxi_lang`), and h
 * `solve_head_step`: proves `0 < head_step e σ (e', σ', efs)` via
   `head_step_support_equiv_rel` and `solve_head_step_rel`.
 * `solve_red` (Rocq: `solve_red` of `con_prob_lang/tactics.v`, restricted to its non-Iris
-  cases): proves `reducible (Λ := con_prob_lang) e σ` / `head_reducible e σ` goals.
+  cases): proves `reducible (Λ := con_prob_lang) e σ` / `head_reducible e σ` goals. The
+  proof-mode cases are added in `Metrology.ConProbLang.SolveRedIris`.
 * `solve_distr`, `inv_distr`, `solve_distr_mass` are provided by `Metrology.Prob.Distribution`.
 
 ## Scheduler section

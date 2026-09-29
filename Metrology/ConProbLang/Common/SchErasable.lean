@@ -16,7 +16,13 @@ Compared with the Rocq development:
   `P : ∀ (t : Type v) [DecidableEq t] [Countable t], scheduler (con_lang_mdp Λ) t → Prop`
   of `sch_erasable` / `sch_erasable_val`, and of every lemma (Rocq: `Global Arguments P (_) {_ _} (_)`;
   in Lean too `P t sch` infers the instance arguments). The scheduler
-  state lives in an arbitrary universe `v`.
+  state lives in a fixed (but arbitrary) universe `v`.
+  **Universe restriction:** Rocq's `sch_state : Type` is universe-polymorphic at every use, whereas
+  here `sch_erasable P μ σ` / `sch_erasable_val P μ σ` only quantify over scheduler state types in
+  the one universe `v` that `P` fixes. Erasability is thus *relative to `v`*: a caller who combines
+  an erasability hypothesis with a concrete scheduler must instantiate `v` to that scheduler's
+  state universe (e.g. `v := 0` for `sch_state : Type`). This is a slight weakening of the Rocq
+  definition, harmless for all current uses (Erasure, adequacy).
 * `μ σ' > 0` becomes `0 < μ σ'`; `SeriesC μ = 1` becomes `∑' a, μ a = 1`.
 * In `sch_erasable_sch_lim_exec`, the Rocq `Sup_seq`/`MCT_seriesC` argument becomes the
   monotone-convergence theorem for `ℝ≥0∞` sums (`ENNReal.mul_iSup`, `tsum_iSup_of_monotone`),

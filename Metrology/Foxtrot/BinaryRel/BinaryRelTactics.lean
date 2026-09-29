@@ -54,9 +54,9 @@ full evaluation context is the list `K ++ Kout` (built as a literal `k1 :: .. ::
 * The tactics that leave side conditions put them after the main goal.
 * Rocq's `rewrite ?Nat2Z.id` in `rel_alloctape_*` is the normalisation of `N = z.toNat`
   (`gwpValSimpDefEq`).
-* Since the `REL` judgement has no `ElimModal (pupd ..)` instance (neither in Rocq), the
-  `tp_*` tactics do not apply to `REL` goals; the RHS tactics here go through the
-  `refines_*_r` rules.
+* Rocq has no `ElimModal (pupd ..)` instance for the `REL` judgement, but the Lean port adds
+  `elim_pupd_refines` in `BinaryModel`, so the `tp_*` tactics also fire on `REL` goals. The
+  `rel_*_r` tactics here still go through the `refines_*_r` rules.
 
 ## Omitted
 * `tac_bind_helper` and `rel_reshape_cont_l`/`rel_reshape_cont_r` (Ltac helpers; replaced by

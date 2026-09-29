@@ -16,14 +16,16 @@ Mathlib's `∑' a, f a`, and almost all of `countable_sum.v` is subsumed by Math
 `ℝ≥0∞`-valued function is summable (`ENNReal.summable`).
 
 Correspondence for the Rocq lemmas (in particular all those used by `con_prob_lang`, `coneris`
-and `foxtrot`). Names not listed here and not defined below have no downstream use.
+and `foxtrot`). Rocq names not listed here and not defined below are either covered by the
+general translation rules (e.g. every `ex_seriesC_*` lemma) or have no downstream use.
 
 General translation rules:
 * every `ex_seriesC _` hypothesis/goal disappears (`ENNReal.summable`); so do all
   `ex_seriesC_*` lemmas (`ex_seriesC_finite`, `ex_seriesC_le`, `ex_seriesC_list`,
   `ex_seriesC_ext`, `ex_seriesC_scal_l/r`, `ex_seriesC_plus`, `ex_seriesC_filter_bool_pos`,
   `ex_seriesC_nat_bounded`, `ex_seriesC_singleton(_dependent)`, ...);
-* non-negativity hypotheses `0 <= f x` disappear, and `SeriesC_ge_0` is `zero_le`;
+* non-negativity hypotheses `0 <= f x` disappear, and `SeriesC_ge_0` is `zero_le`
+  (`SeriesC_ge_0'` is also provided below under its Rocq name);
 * `is_seriesC f v` is `∑' a, f a = v` (use `HasSum f v` only if genuinely needed);
   `SeriesC_correct` / `SeriesC_correct'` are therefore no-ops (`rfl` / the hypothesis itself);
 * `foldr (Rplus ∘ f) 0 l` is `(l.map f).sum`; `sum_n g n` is `∑ i ∈ Finset.range (n + 1), g i`;
@@ -51,7 +53,8 @@ Lemmas defined below under their Rocq names: `MCT_seriesC` (as `tsum_iSup_of_mon
 `SeriesC_finite_foldr` (+ `SeriesC_finite_foldr_list`), `SeriesC_Sup_seq_swap`,
 `SeriesC_le_inj`, `fin_function_bounded` (+ `ℝ≥0∞` version `fin_function_bounded'`),
 `SeriesC_lt` (needs `∑' g ≠ ∞`), `extend_fin_to_R`, `SeriesC_fin_sum`, `SeriesC_nat_bounded`,
-`SeriesC_nat_bounded_fin`, `SeriesC_fin2`, `SeriesC_fin_in_set`, `SeriesC_fin_not_in_set`,
+`SeriesC_nat_bounded_fin`, `SeriesC_fin2`, `SeriesC_fin_in_set`, `SeriesC_fin_in_set'`,
+`SeriesC_fin_not_in_set`, `SeriesC_fin_not_in_set'`, `SeriesC_ge_0'`,
 `is_seriesC_filter_union` (stated additively).
 -/
 
@@ -73,6 +76,9 @@ theorem tsum_iSup_of_monotone {f : ℕ → α → ℝ≥0∞} (hf : ∀ a, Monot
   congr 1
   funext s
   exact ENNReal.finsetSum_iSup_of_monotone hf
+
+/-- Rocq: `SeriesC_ge_0'` (trivial in `ℝ≥0∞`; kept for name-for-name translation). -/
+theorem SeriesC_ge_0' (f : α → ℝ≥0∞) (_ : ∀ x, 0 ≤ f x) : 0 ≤ ∑' a, f a := zero_le
 
 /-- Rocq: `SeriesC_singleton'`. -/
 theorem SeriesC_singleton' [DecidableEq α] (a : α) (v : ℝ≥0∞) :
@@ -274,6 +280,18 @@ theorem SeriesC_fin_not_in_set (N : ℕ) (ns : Finset ℕ) (hns : ∀ x ∈ ns, 
       (if (x : ℕ) ∈ ns then 1 else 0)) = fun _ => 1 by
     funext x; by_cases h : (x : ℕ) ∈ ns <;> simp [h]]
   simp
+
+/-- Rocq: `SeriesC_fin_in_set'`. -/
+theorem SeriesC_fin_in_set' (N : ℕ) (ns : Finset ℕ) (v : ℝ≥0∞) (hns : ∀ x ∈ ns, x < N + 1) :
+    ∑' x : Fin (N + 1), (if (x : ℕ) ∈ ns then v else 0) = v * ns.card := by
+  rw [← SeriesC_fin_in_set N ns hns, ← ENNReal.tsum_mul_left]
+  congr 1; funext x; split_ifs <;> simp
+
+/-- Rocq: `SeriesC_fin_not_in_set'`. -/
+theorem SeriesC_fin_not_in_set' (N : ℕ) (ns : Finset ℕ) (v : ℝ≥0∞) (hns : ∀ x ∈ ns, x < N + 1) :
+    ∑' x : Fin (N + 1), (if (x : ℕ) ∉ ns then v else 0) = v * ((N + 1 : ℝ≥0∞) - ns.card) := by
+  rw [← SeriesC_fin_not_in_set N ns hns, ← ENNReal.tsum_mul_left]
+  congr 1; funext x; split_ifs <;> simp
 
 /-- Rocq: `is_seriesC_filter_union`, stated additively (no subtraction needed in `ℝ≥0∞`). -/
 theorem is_seriesC_filter_union (f : α → ℝ≥0∞) (P Q : α → Prop) [DecidablePred P]

@@ -32,7 +32,12 @@ Rocq → Lean:
 * `loc_add_inj` (an `Inj` instance) → theorem `loc_add_inj : Function.Injective (loc_add l)`;
 * `fresh_locs (ls : gset loc)` → `fresh_locs (ls : List Loc)` (as iris-lean's `Loc.fresh`);
 * `fresh_loc (σ : gmap loc V)` → `fresh_loc (σ : Std.ExtTreeMap Loc V)`, `dom σ` membership
-  becomes `l ∈ σ`; `fresh_loc_eq_dom` takes `∀ l, l ∈ σ ↔ l ∈ σ'`;
+  becomes `l ∈ σ`; `fresh_loc_eq_dom` takes `∀ l, l ∈ σ ↔ l ∈ σ'`. Rocq defines
+  `fresh_loc σ := fresh (dom σ)` (stdpp's `infinite_fresh`), whereas here
+  `fresh_loc σ := fresh_locs σ.keys` (one past the maximal key). The concrete location chosen may
+  therefore differ from Rocq's; this is irrelevant since `fresh_loc` is irreducible and only the
+  freshness lemmas (`fresh_loc_is_fresh`, `fresh_loc_offset_is_fresh`, `fresh_loc_eq_dom`, all
+  ported) are used downstream;
 * `loc_le_dec`, `loc_lt_dec`, `loc_le_po`, `loc_le_total` → instances derived from
   `LinearOrder Loc` (`loc_le_dec`, `loc_lt_dec` are also given explicitly);
 * `Global Opaque fresh_locs fresh_loc` → the definitions are `@[irreducible]`.

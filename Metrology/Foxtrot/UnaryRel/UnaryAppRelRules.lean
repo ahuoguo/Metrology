@@ -12,9 +12,9 @@ Primitive rules for the unary "refinement" judgement `REL e : A` (`= WP e {{ A }
 `Foxtrot.UnaryRel.UnaryModel`: forward reductions on the (only) program.
 
 ## Rocq → Lean map
-`refines_pure`, `refines_masked_l`, `refines_wp_l`, `refines_atomic_l`, `refines_arrow_val`,
-`refines_arrow`, `refines_wand`, `refines_alloc_l`, `refines_alloctape_l`, `refines_fork`,
-`refines_xchg_l`, `refines_cmpxchg_l`, `refines_faa_l`: same names (namespace
+`refines_pure`, `refines_masked_l`, `refines_wp_l`, `refines_atomic_l`, `pupd_fupd'`,
+`refines_arrow_val`, `refines_arrow`, `refines_wand`, `refines_alloc_l`, `refines_alloctape_l`,
+`refines_fork`, `refines_xchg_l`, `refines_cmpxchg_l`, `refines_faa_l`: same names (namespace
 `Foxtrot.UnaryRel`).
 
 ## Deviations
@@ -23,11 +23,11 @@ Primitive rules for the unary "refinement" judgement `REL e : A` (`= WP e {{ A }
 * Rocq `ref e` is `Alloc e`, `alloc #z` is `alloc (Val (LitV (LitInt z)))`, `#l` is
   `Val (LitV (LitLoc l))`, `of_val v` is `Val v`.
 * Rocq's `P -∗ Q` lemma statements are entailments `P ⊢ Q` (as in `Foxtrot.Weakestpre`).
+* `pupd_fupd'` is the same statement as `Foxtrot.pupd_fupd'` (Rocq re-proves it in this
+  section); here it is `Foxtrot.UnaryRel.pupd_fupd'`, proved by `Foxtrot.pupd_fupd'` (as in
+  `BinaryAppRelRules`).
 
 ## Omitted
-* `pupd_fupd'`: the Rocq file re-proves `pupd_fupd'` of `foxtrot/pupd.v`; it is already
-  `Foxtrot.pupd_fupd'` (`Metrology.Foxtrot.Pupd`), with the same statement, and a second
-  declaration would make the name ambiguous in `Foxtrot.UnaryRel`.
 * `Local Existing Instance pure_exec_fill` (the proofs use `pure_exec_ctx` directly).
 * The commented-out Rocq lemmas (`refines_pure_r`, `refines_step_r`, `refines_alloc_r`,
   `refines_alloctape_r`, `refines_xchg_r`, `refines_cmpxchg_fail_r`, `refines_cmpxchg_suc_r`,
@@ -79,6 +79,11 @@ theorem refines_atomic_l (E : CoPset) (K : List ectx_item) (e1 : expr) (A : lrel
     (|={⊤, E}=> WP e1 @ E {{ v, |={E, ⊤}=> REL fill K (Val v) : A }})
       ⊢ REL fill K e1 : A :=
   wp_atomic.trans (wp_bind (fill K))
+
+/-- Rocq: `pupd_fupd'` (re-proved in the Rocq section; see `Foxtrot.pupd_fupd'`). -/
+theorem pupd_fupd' (E1 E2 : CoPset) (P : IProp GF) (h : E2 ⊆ E1) :
+    pupd E1 E1 P ⊢ pupd E1 E2 iprop(|={E2, E1}=> P) :=
+  Foxtrot.pupd_fupd' E1 E2 P h
 
 /-- Rocq: `refines_arrow_val`. This rule is useful for proving that functions refine each
 other. -/

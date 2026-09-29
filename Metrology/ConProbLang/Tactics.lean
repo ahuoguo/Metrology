@@ -25,8 +25,9 @@ Ported from clutch/theories/con_prob_lang/tactics.v
 * `solve_step`: the tactic `solve_step` (goals `prim_step e σ ρ = 1`, `head_step e σ ρ = 1`,
   `0 < head_step e σ ρ`). Rocq's `simplify_map_eq` is replaced by `simp`.
 * `solve_red`: defined in `Metrology.ConProbLang.Lang` (where it is used first), restricted to its
-  non-Iris cases; the Iris proof-mode cases (`envs_entails _ (⌜_⌝ ∗ _)`) are omitted here and
-  are to be added by the Iris-level ports.
+  non-Iris cases; the Iris proof-mode cases (`envs_entails _ (⌜_⌝ ∗ _)` and
+  `envs_entails _ (_ ∗ ⌜_⌝)`) are added by `Metrology.ConProbLang.SolveRedIris` (extra
+  `macro_rules` for `solve_red`, needing `Iris.ProofMode`).
 -/
 
 @[expose] public section

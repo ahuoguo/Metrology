@@ -34,7 +34,9 @@ characterisations, and lemmas about tape updates and `prim_step`. Everything liv
 * `prim_step` (of the `con_prob_lang` language) is written `prim_step (Λ := con_prob_lang)`;
   `fill` is `con_prob_lang.fill` from `Lang.lean`.
 * `ex_seriesC_prim_step_mult_fn_con_prob_lang` is stated as `Summable` with an `ℝ≥0∞`-valued
-  `f` (trivial in `ℝ≥0∞`).
+  `f`. In `ℝ≥0∞` every family is summable, so this statement is vacuous; the substantive
+  (finite-support) content of the Rocq lemma is carried by `prim_step_finite_options` (and
+  `head_step_fin_supp`).
 * `prim_step_finite_options` is proved via finite supports (`fin_supp`) instead of Rocq's case
   analysis through `det_or_prob_or_dzero`.
 

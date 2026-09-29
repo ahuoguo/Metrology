@@ -31,7 +31,8 @@ inferred from `expr` (in Rocq it is found through canonical structures), e.g.
   `wp_pure` unifies it when solving `φ` by `reflexivity`). They are therefore stated as
   theorems with the Rocq shape, and the instances are the computing variants
   `pure_unop_eval : PureExec ((un_op_eval op v).isSome = true) 1 (UnOp op (Val v))
-  (Val ((un_op_eval op v).getD v))` and `pure_binop_eval` (not in Rocq). Downstream `wp_pure`
+  (Val ((un_op_eval op v).getD v))` and `pure_binop_eval` (not in Rocq); `pure_unop_eval_iff` /
+  `pure_binop_eval_iff` relate the computed form back to the Rocq one. Downstream `wp_pure`
   tactics discharge `φ` by `decide`/`simp` and normalize the result with `simp`.
 -/
 
@@ -260,6 +261,20 @@ instance pure_binop_eval (op : bin_op) (v1 v2 : val) :
   obtain ⟨w, hw⟩ := Option.isSome_iff_exists.1 h
   simp [hw]
 
+/-- Relates the computed form of `pure_unop_eval` to the Rocq form of `pure_unop` (not in Rocq):
+the side condition holds with result `v'` iff `un_op_eval op v = some v'`. -/
+theorem pure_unop_eval_iff (op : un_op) (v v' : val) :
+    ((un_op_eval op v).isSome = true ∧ (un_op_eval op v).getD v = v') ↔
+      un_op_eval op v = some v' := by
+  cases un_op_eval op v <;> simp
+
+/-- Relates the computed form of `pure_binop_eval` to the Rocq form of `pure_binop` (not in
+Rocq): the side condition holds with result `v'` iff `bin_op_eval op v1 v2 = some v'`. -/
+theorem pure_binop_eval_iff (op : bin_op) (v1 v2 v' : val) :
+    ((bin_op_eval op v1 v2).isSome = true ∧ (bin_op_eval op v1 v2).getD v1 = v') ↔
+      bin_op_eval op v1 v2 = some v' := by
+  cases bin_op_eval op v1 v2 <;> simp
+
 /-- Rocq: `pure_eqop`. Higher priority than the generic `pure_binop_eval` (Rocq: lower cost
 than `pure_binop`). -/
 instance (priority := default + 10) pure_eqop (v1 v2 : val) :
@@ -327,6 +342,13 @@ example : cpl(let (a, b, c) := #1; a) =
     Let (BNamed "a") (Val (LitV (LitInt 1)))
       (Let (BNamed "b") (Snd (Fst (Var "a")))
         (Let (BNamed "c") (Snd (Var "a")) (Let (BNamed "a") (Fst (Fst (Var "a"))) (Var "a")))) :=
+  rfl
+example : cpl(let ("a", b) := #1; "a") = cpl(let (a, b) := #1; a) := rfl
+example : cpl(let ("a", "b", c) := #1; a) = cpl(let (a, b, c) := #1; a) := rfl
+example : cpl(let (a, ("b", c)) := #1; b) =
+    Let (BNamed "a") (Val (LitV (LitInt 1)))
+      (Let (BNamed "b") (Fst (Snd (Var "a")))
+        (Let (BNamed "c") (Snd (Snd (Var "a"))) (Let (BNamed "a") (Fst (Var "a")) (Var "b")))) :=
   rfl
 example (e : expr) : cpl(match &e with | none() => #0 | some(y) => y) =
     Match e BAnon (Val (LitV (LitInt 0))) (BNamed "y") (Var "y") := rfl
