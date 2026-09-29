@@ -10,6 +10,7 @@ public import Metrology.ConProbLang.Notation
 public import Metrology.ConProbLang.Common.ConInject
 public import Metrology.ConProbLang.Tactics
 public import Metrology.ConProbLang.Metatheory
+public import Metrology.ConProbLang.CtxSubst
 public import Metrology.ConProbLang.ClassInstances
 public import Metrology.ConProbLang.SolveRedIris
 public import Metrology.ConProbLang.Erasure
@@ -18,6 +19,7 @@ public import Metrology.ConProbLang.Spec.SpecRA
 public import Metrology.ConProbLang.Spec.SpecTactics
 public import Metrology.ConProbLang.Typing.Types
 public import Metrology.ConProbLang.Typing.ContextualRefinement
+public import Metrology.ConProbLang.Typing.Tychk
 
 @[expose] public section
 
